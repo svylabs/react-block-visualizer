@@ -10,13 +10,17 @@
     }
     .box {
       background-color: var(--white);
-      padding: 2rem;
       border-radius: 1rem;
       border: 1px solid var(--border);
+      height: 50rem;
+      width: 100%;
+      overflow: hidden;
 
       .subTitle {
+        padding: 0.8rem 0 0.8rem 2rem;
         color: var(--dark);
         font-size: 2rem;
+        box-shadow: 1px 1px 10px rgba($color: #000000, $alpha: 0.1);
       }
     }
   }
