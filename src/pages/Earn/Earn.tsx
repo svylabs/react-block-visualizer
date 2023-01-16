@@ -1,74 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import styles from "./Earn.module.scss";
 import { blocks_submitted, blocks_confirmed } from "~/data/graph-data";
-import { Graph } from "react-d3-graph";
-
+import { DataSet, Network } from "vis-network";
 type Props = {};
-
-const myConfig = {
-  automaticRearrangeAfterDropNode: false,
-  collapsible: false,
-  directed: false,
-  focusAnimationDuration: 0,
-  focusZoom: 1,
-  freezeAllDragEvents: false,
-  height: 400,
-  highlightDegree: 1,
-  highlightOpacity: 1,
-  linkHighlightBehavior: false,
-  maxZoom: 8,
-  minZoom: 0.1,
-  nodeHighlightBehavior: false,
-  panAndZoom: false,
-  staticGraph: true,
-  staticGraphWithDragAndDrop: false,
-  width: 1000,
-  d3: {
-    alphaTarget: 0.05,
-    gravity: -10,
-    linkLength: 100,
-    linkStrength: 1,
-    disableLinkForce: false,
-  },
-  node: {
-    color: "#d3d3d3",
-    fontColor: "black",
-    fontSize: 8,
-    fontWeight: "normal",
-    highlightColor: "SAME",
-    highlightFontSize: 8,
-    highlightFontWeight: "normal",
-    highlightStrokeColor: "SAME",
-    highlightStrokeWidth: 3,
-    mouseCursor: "pointer",
-    opacity: 1,
-    renderLabel: true,
-    size: 200,
-    strokeColor: "none",
-    strokeWidth: 1.5,
-    svg: "",
-    symbolType: "circle",
-  },
-  link: {
-    color: "#d3d3d3",
-    fontColor: "black",
-    fontSize: 8,
-    fontWeight: "normal",
-    highlightColor: "SAME",
-    highlightFontSize: 8,
-    highlightFontWeight: "normal",
-    mouseCursor: "pointer",
-    opacity: 1,
-    renderLabel: false,
-    semanticStrokeWidth: false,
-    strokeWidth: 1.5,
-    markerHeight: 6,
-    markerWidth: 6,
-    strokeDasharray: 0,
-    strokeDashoffset: 0,
-    strokeLinecap: "butt",
-  },
-};
 
 const Earn = (props: Props) => {
   const [nodes, setNodes] = useState<any[]>([]);
@@ -78,6 +12,7 @@ const Earn = (props: Props) => {
     links: [],
   });
   let pos = useRef({ x: 0, y: 150 });
+  const ref = useRef<HTMLDivElement>(null);
 
   // WARNING! do not try to refactor this
   useEffect(() => {
@@ -85,37 +20,83 @@ const Earn = (props: Props) => {
   }, [nodes, edges]);
 
   useEffect(() => {
-    blocks_submitted.forEach(([source, target]) => {
+    blocks_submitted.forEach(([from, to]) => {
       setNodes((prev) => {
-        prev.push({
-          id: source,
-          label: source,
-          color: blocks_confirmed.includes(source) ? "green" : "yellow",
-          x: pos.current.x,
-          y: pos.current.y,
-        });
+        const fromAlreadyExist = prev.some((i) => i.id === from);
+
+        if (!fromAlreadyExist) {
+          prev.push({
+            id: from,
+            label: from,
+            ...(blocks_confirmed.includes(from)
+              ? { color: "green", font: "14px Arial white" }
+              : { color: "yellow" }),
+            // x: pos.current.x,
+            // y: pos.current.y,
+          });
+        }
         pos.current.x += 10;
-        prev.push({
-          id: target,
-          label: target,
-          color: blocks_confirmed.includes(source) ? "green" : "yellow",
-          x: pos.current.x,
-          y: pos.current.y,
-        });
+
+        const toAlreadyExist = prev.some((i) => i.id === from);
+
+        if (!toAlreadyExist) {
+          prev.push({
+            id: to,
+            label: to,
+            color: blocks_confirmed.includes(from) ? "green" : "yellow",
+            // x: pos.current.x,
+            // y: pos.current.y,
+          });
+        }
         pos.current.x += 10;
 
         return prev;
       });
 
       setEdges((prev) => {
-        prev.push({
-          source,
-          target,
-        });
+        const edgeAlreadyExist = prev.some(
+          (p) => p.from === from && p.to === to
+        );
+
+        if (!edgeAlreadyExist) {
+          prev.push({
+            from,
+            to,
+          });
+        }
         return prev;
       });
     });
   }, [blocks_submitted]);
+
+  useEffect(() => {
+    var data = {
+      nodes: nodes,
+      edges: edges,
+    };
+    var options = {
+      height: "100%",
+      physics: false,
+      nodes: {
+        shape: "circle",
+      },
+      interaction: {
+        dragNodes: false,
+      },
+      layout: {
+        hierarchical: {
+          // levelSeparation: 50,
+          direction: "LR",
+          // nodeSpacing: 400,
+        },
+      },
+    };
+
+    if (ref.current) {
+      console.log("asfdasd");
+      var network = new Network(ref.current, data, options);
+    }
+  }, [nodes, edges, blocks_submitted]);
 
   return (
     <div className={styles.earnPage}>
@@ -123,14 +104,7 @@ const Earn = (props: Props) => {
         <h3>1. Earn coins by submitting Bitcoin block headers</h3>
         <div className={styles.box}>
           <p className={styles.subTitle}>Earn 10 coins</p>
-          <Graph
-            id="graph-id" // id is mandatory, if no id is defined rd3g will throw an error
-            data={data}
-            config={myConfig}
-            onClickNode={(nodeId, node) => {
-              console.log(nodeId, node);
-            }}
-          />
+          <div ref={ref} className={styles.graph}></div>
         </div>
       </section>
       <section>
