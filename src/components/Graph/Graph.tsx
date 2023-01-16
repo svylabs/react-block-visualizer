@@ -1,47 +1,86 @@
-import React, { useEffect, useState } from "react";
-import { blocks_submitted } from "~/data/graph-data";
+import React, { useEffect, useRef, useState } from "react";
+import { Network } from "vis-network";
+import styles from "./Graph.module.scss";
 
-type Props = {};
+type Props = {
+  submittedBlocks: string[][];
+  confirmedBlocks?: string[];
+};
 
-const Graph = (props: Props) => {
-  const [blocks, setBlocks] = useState<string[]>([]);
-  const [graph, setGraph] = useState(new Map());
+const options = {
+  height: "100%",
+  physics: false,
+  nodes: {
+    shape: "circle",
+  },
+  interaction: {
+    dragNodes: false,
+    zoomView: false,
+  },
+  layout: {
+    hierarchical: {
+      direction: "LR",
+    },
+  },
+};
 
-  const getBlocks = (blocks: string[][]) => {
-    return [...blocks]
-      .map((block) => block.toString())
-      .toString()
-      .split(",");
-  };
-
-  useEffect(() => {
-    setBlocks([...new Set(getBlocks(blocks_submitted))]);
-  }, [blocks_submitted]);
-
-  console.log(blocks);
-  const addNode = (hash: string) => {
-    setGraph((prev) => {
-      prev.set(hash, []);
-      return prev;
-    });
-  };
-
-  const addEdge = (origin: string, destination: string) => {
-    setGraph((prev) => {
-      prev.get(origin)?.push(destination);
-      prev.get(destination)?.push(origin);
-      return prev;
-    });
-  };
+const Graph = ({ submittedBlocks, confirmedBlocks }: Props) => {
+  const [nodes, setNodes] = useState<any[]>([]);
+  const [edges, setEdges] = useState<any[]>([]);
+  const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    [...blocks].forEach((block) => addNode(block));
-    blocks_submitted.forEach((block: string[]) => addEdge(block[0], block[1]));
-  }, [blocks]);
+    submittedBlocks.forEach(([from, to]) => {
+      setNodes((prev) => {
+        const fromAlreadyExist = prev.some((i) => i.id === from);
+        const toAlreadyExist = prev.some((i) => i.id === to);
 
-  console.log(graph);
+        if (!fromAlreadyExist) {
+          prev.push({
+            id: from,
+            label: from,
+            ...(confirmedBlocks?.includes(from)
+              ? { color: "green", font: "14px Arial white" }
+              : { color: "orange" }),
+          });
+        }
+        if (!toAlreadyExist) {
+          prev.push({
+            id: to,
+            label: to,
+            ...(confirmedBlocks?.includes(from)
+              ? { color: "green", font: "14px Arial white" }
+              : { color: "orange" }),
+          });
+        }
 
-  return <div></div>;
+        return prev;
+      });
+
+      setEdges((prev) => {
+        const edgeAlreadyExist = prev.some(
+          (p) => p.from === from && p.to === to
+        );
+
+        if (!edgeAlreadyExist) {
+          prev.push({
+            from,
+            to,
+          });
+        }
+        return prev;
+      });
+    });
+  }, [submittedBlocks]);
+
+  useEffect(() => {
+    if (ref.current) {
+      const data = { nodes, edges };
+      const network = new Network(ref.current, data, options);
+    }
+  }, [nodes, edges, ref]);
+
+  return <div className={styles.root} ref={ref}></div>;
 };
 
 export default Graph;
