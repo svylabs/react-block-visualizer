@@ -1,31 +1,71 @@
 {
   "name": "react-block-visualizer",
-  "private": true,
+  "private": false,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
-  },
-  "dependencies": {
-    "@emotion/react": "^11.10.5",
-    "@mantine/core": "^5.10.0",
-    "@mantine/hooks": "^5.10.0",
-    "@mantine/modals": "^5.10.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-router-dom": "^6.6.2",
-    "sass": "^1.57.1",
-    "vis-network": "^9.1.2"
+    "preview": "vite preview",
+    "lint": "eslint 'src/**/*.{js,jsx,ts,tsx}'",
+    "lint:fix": "eslint --fix 'src/**/*.{jsx,ts,tsx}'",
+    "format": "prettier --write src//**/*.{ts,tsx,css} --config ./.prettierrc",
+    "prepare": "husky install"
   },
   "devDependencies": {
-    "@iconify/react": "^4.0.1",
     "@types/node": "^18.11.18",
     "@types/react": "^18.0.26",
     "@types/react-dom": "^18.0.9",
+    "@typescript-eslint/eslint-plugin": "^5.48.2",
+    "@typescript-eslint/parser": "^5.48.2",
     "@vitejs/plugin-react": "^3.0.0",
+    "eslint": "^8.32.0",
+    "eslint-plugin-react": "^7.32.1",
+    "eslint-plugin-simple-import-sort": "^9.0.0",
+    "husky": "^8.0.3",
+    "prettier": "^2.8.3",
+    "react-hooks": "^1.0.1",
     "typescript": "^4.9.3",
-    "vite": "^4.0.0"
-  }
+    "vis-network": "^9.1.2",
+    "vite": "^4.0.0",
+    "vite-plugin-dts": "^1.7.1",
+    "vite-plugin-linter": "^2.0.2",
+    "vite-tsconfig-paths": "^4.0.3"
+  },
+  "peerDependencies": {
+    "react": "^18.2.0 || >=17.x",
+    "react-dom": "^18.2.0 || >=17.x"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/svylabs/react-block-visualizer"
+  },
+  "bugs": {
+    "url": "https://github.com/svylabs/react-block-visualizer/issues"
+  },
+  "homepage": "https://github.com/svylabs/react-block-visualizer#readme",
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "src/**/*.{js,jsx,ts,tsx}": [
+      "yarn  eslint",
+      "yarn  format"
+    ]
+  },
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "import": "./dist/react-block-visualizer.es.js",
+      "require": "./dist/react-block-visualizer.umd.js"
+    },
+    "./dist/style.css": "./dist/style.css"
+  },
+  "main": "./dist/react-block-visualizer.umd.js",
+  "module": "./dist/react-block-visualizer.es.js",
+  "types": "./dist/index.d.ts"
 }
